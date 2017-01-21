@@ -1,9 +1,10 @@
 (ns ggj2017-waves.core
   (:require [play-cljs.core :as p]
+            [ggj2017-waves.utils :as u]
             [goog.events :as events]))
 
 (defonce game (p/create-game 600 400))
-(defonce state (atom {:player-x 100
+(defonce state (atom {:player-x 200
                       :player-y 40
                       :player-image (p/load-image game "player-1.png")
                       :player-wave (p/load-image game "player-2.png")
@@ -24,17 +25,38 @@
 
 (def speed 10)
 
+(defn hypothetical-move-possible?
+  "Sorry but my brain can't think of a more elegant way right now.
+  Basically I'm checking whether or not a move in the wanted direction
+  would trigger a collision by duplicating a lot of code"
+  [direction]
+  (let [fake-player
+        {:value :player-wave
+         :x (:player-x @state)
+         :y (:player-y @state)
+         :width 20
+         :height 30}
+        fake (case direction
+          :left (assoc fake-player :x (- (:player-x @state) speed))
+          :right (assoc fake-player :x (+ (:player-x @state) speed))
+          :up (assoc fake-player :y (- (:player-y @state) speed))
+          :down (assoc fake-player :y (+ (:player-y @state) speed))
+          false)]
+    (not (u/collision-detection (:entities @state) [:image  fake]))))
+
 (defn move
   "The player can only move if they're not waving.
-  Walking _and_ waving is just not cool"
+  Walking _and_ waving is just not cool.
+  Also check for things you can't move through."
   [direction]
   (if (false? (:player-is-waving? @state))
-    (case direction
-      :left (swap! state assoc :player-x (- (:player-x @state) speed))
-      :right (swap! state assoc :player-x (+ (:player-x @state) speed))
-      :up (swap! state assoc :player-y (- (:player-y @state) speed))
-      :down (swap! state assoc :player-y (+ (:player-y @state) speed))
-      false)))
+    (if (hypothetical-move-possible? direction)
+      (case direction
+        :left (swap! state assoc :player-x (- (:player-x @state) speed))
+        :right (swap! state assoc :player-x (+ (:player-x @state) speed))
+        :up (swap! state assoc :player-y (- (:player-y @state) speed))
+        :down (swap! state assoc :player-y (+ (:player-y @state) speed))
+        false))))
 
 (defn wave []
   (swap! state assoc :player-is-waving? (not (true? (:player-is-waving? @state)))))
@@ -43,24 +65,6 @@
   [[:image {:value (:fruit-store @state) :x 50 :y 50 :width 50 :height 50}]
    [:image {:value (:croissant-store @state) :x 210 :y 280 :width 50 :height 50}]
    [:image {:value (:coffee-store @state) :x 430 :y 130 :width 50 :height 50}]])
-
-;; copied from
-;; https://github.com/oakes/play-cljs-examples/blob/master/flappy-bird-clone/src/flappy_bird_clone/core.cljs#L41
-(defn collision-detection [images [_ {:keys [x y width height] :as bird}]]
-  (let [diags (map
-               (fn [[_ {:keys [x y width height] :as image}]]
-                 {:x1 x :y1 y :x2 (+ x width) :y2 (+ y height)})
-               images)
-        overlap-check (fn [{:keys [x1 y1 x2 y2]}]
-                        (let [birdx1 x birdy1 y birdx2 (+ x 60) birdy2 (+ y 60)]
-                          (cond
-                            (< birdx2 x1) false
-                            (> birdx1 x2) false
-                            (> birdy1 y2) false
-                            (> y1 birdy2) false
-                            :overlapping true)))
-        overlaps (map overlap-check diags)]
-    (some #(= true %) overlaps)))
 
 (def main-screen
   (reify p/Screen
@@ -72,14 +76,12 @@
             player-img [:image {:value player-state :x (:player-x @state) :y (:player-y @state) :width 20 :height 30}]
             entities (:entities @state)]
 
-        (when (collision-detection entities player-img) (js/console.log "HIT"))
+        (when (u/collision-detection entities player-img) (js/console.log "HIT"))
 
-        (p/render game
-                  [[:div {:x 0 :y 0}
-                    [:image {:value (:bg @state)}]]
-                   player-img])
-
-        (p/render game entities)))))
+        (p/render game [[:div {:x 0 :y 0}
+                         [:image {:value (:bg @state)}]]])
+        (p/render game entities)
+        (p/render game [player-img])))))
 
 (doto game
   (p/stop)
