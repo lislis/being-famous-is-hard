@@ -15,13 +15,14 @@
                       :coffee-store (p/load-image game "coffee.png")
                       :house1 (p/load-image game "house1.png")
                       :house2 (p/load-image game "house2.png")
-                      :house3 (p/load-image game "house3.png")
+                      :house3 (p/load-image game "house0.png")
                       :entities []
                       :people []
+                      :stores []
                       :spawn-timer 0
                       }))
 
-(def speed 10)
+(def speed 5)
 (def people-spawn-interval 4000)
 
 (defn move [direction]
@@ -36,10 +37,20 @@
 (defn wave []
   (swap! state assoc :player-is-waving? (not (true? (:player-is-waving? @state)))))
 
-(defn init-entities []
+(defn init-stores []
   [[:image {:value (:fruit-store @state) :x 50 :y 50 :width 50 :height 50}]
    [:image {:value (:croissant-store @state) :x 210 :y 280 :width 50 :height 50}]
    [:image {:value (:coffee-store @state) :x 430 :y 130 :width 50 :height 50}]])
+
+(defn init-entities []
+  [[:image {:value (p/load-image game (str "house" (rand-int 3) ".png"))
+            :x 300 :y 20 :width 50 :height 50}]
+   [:image {:value (p/load-image game (str "house" (rand-int 3) ".png"))
+            :x 80 :y 300 :width 50 :height 50}]
+   [:image {:value (p/load-image game (str "house" (rand-int 3) ".png"))
+            :x 230 :y 170 :width 50 :height 50}]
+   [:image {:value (p/load-image game (str "house" (rand-int 3) ".png"))
+            :x 430 :y 210 :width 50 :height 50}]])
 
 (defn spawn-person []
   (let [new-entity [:image {:value (p/load-image game (str "person-" (rand-int 4) ".png"))
@@ -48,9 +59,7 @@
         new-entities (conj old-entities new-entity)]
     (swap! state assoc :people [new-entities])))
 
-(defn spawn-person-maybe
-  "spawns a person approx every 2 seconds"
-  []
+(defn spawn-person-maybe []
   (let [delta (p/get-delta-time game)
         timer (:spawn-timer @state)
         update-time (+ timer delta)]
@@ -63,6 +72,7 @@
 (def main-screen
   (reify p/Screen
     (on-show [this]
+      (swap! state assoc :stores (init-stores))
       (swap! state assoc :entities (init-entities)))
     (on-hide [this])
     (on-render [this]
@@ -71,15 +81,17 @@
                                 :x (:player-x @state) :y (:player-y @state)
                                 :width 20 :height 30}]
             entities (:entities @state)
-            people (:people @state)]
+            people (:people @state)
+            stores (:stores @state)]
 
         (spawn-person-maybe)
 
         (when (u/collision-detection people player-img) (js/console.log "BUM"))
-        (when (u/collision-detection entities player-img) (js/console.log "HIT"))
+        (when (u/collision-detection stores player-img) (js/console.log "HIT"))
 
         (p/render game [[:image {:value (:bg @state) :x 0 :y 0}]])
         (p/render game entities)
+        (p/render game stores)
         (p/render game people)
         (p/render game [player-img])))))
 
