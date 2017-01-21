@@ -41,16 +41,14 @@
    [:image {:value (:croissant-store @state) :x 210 :y 280 :width 50 :height 50}]
    [:image {:value (:coffee-store @state) :x 430 :y 130 :width 50 :height 50}]])
 
-(defn spawn-person
-  "Pick a person image and append it to people"
-  []
+(defn spawn-person []
   (let [new-entity [:image {:value (p/load-image game (str "person-" (rand-int 4) ".png"))
                             :x (rand-int 580) :y (rand-int 370) :width 20 :height 30}]
         old-entities (:people @state)
         new-entities (conj old-entities new-entity)]
     (swap! state assoc :people [new-entities])))
 
-(defn spawn-person?
+(defn spawn-person-maybe
   "spawns a person approx every 2 seconds"
   []
   (let [delta (p/get-delta-time game)
@@ -75,7 +73,7 @@
             entities (:entities @state)
             people (:people @state)]
 
-        (spawn-person?)
+        (spawn-person-maybe)
 
         (when (u/collision-detection people player-img) (js/console.log "BUM"))
         (when (u/collision-detection entities player-img) (js/console.log "HIT"))
