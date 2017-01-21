@@ -16,7 +16,7 @@
                       :person-1 (p/load-image game "person-1.png")
                       :person-2 (p/load-image game "person-2.png")
                       :person-3 (p/load-image game "person-3.png")
-                      :person-4 (p/load-image game "person-4.png")
+                      :person-4 (p/load-image game "person-0.png")
                       :house1 (p/load-image game "house1.png")
                       :house2 (p/load-image game "house2.png")
                       :house3 (p/load-image game "house3.png")
@@ -68,13 +68,19 @@
    [:image {:value (:croissant-store @state) :x 210 :y 280 :width 50 :height 50}]
    [:image {:value (:coffee-store @state) :x 430 :y 130 :width 50 :height 50}]])
 
-(defn spawn-person []
-  (js/console.log "Hey there spawn"))
+(defn spawn-person
+  "Pick a person image and append it to entities"
+  []
+  (let [new-entity [:image {:value (p/load-image game (str "person-" (rand-int 4) ".png"))
+                            :x (rand-int 600) :y (rand-int 370) :width 20 :height 30}]
+        old-entities (:entities @state)
+        new-entities (conj old-entities new-entity)]
+    (swap! state assoc :entities [new-entities])))
 
 (defn spawn-person?
   "spawns a person approx every 2 seconds"
   []
-  (let [delta (p/get-delta-time game)
+  (let [delta (p/get-delta-time game)sa
         timer (:spawn-timer @state)
         update-time (+ timer delta)]
     (if (> update-time people-spawn-interval)
