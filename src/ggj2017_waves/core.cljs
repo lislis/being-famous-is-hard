@@ -13,19 +13,16 @@
                       :fruit-store (p/load-image game "fruit.png")
                       :croissant-store (p/load-image game "croissant.png")
                       :coffee-store (p/load-image game "coffee.png")
-                      :person-1 (p/load-image game "person-1.png")
-                      :person-2 (p/load-image game "person-2.png")
-                      :person-3 (p/load-image game "person-3.png")
-                      :person-4 (p/load-image game "person-0.png")
                       :house1 (p/load-image game "house1.png")
                       :house2 (p/load-image game "house2.png")
                       :house3 (p/load-image game "house3.png")
                       :entities []
+                      :people []
                       :spawn-timer 0
                       }))
 
 (def speed 10)
-(def people-spawn-interval 2000)
+(def people-spawn-interval 4000)
 
 (defn hypothetical-move-possible?
   "Sorry but my brain can't think of a more elegant way right now.
@@ -44,21 +41,17 @@
           :up (assoc fake-player :y (- (:player-y @state) speed))
           :down (assoc fake-player :y (+ (:player-y @state) speed))
           false)]
-    (not (u/collision-detection (:entities @state) [:image  fake]))))
+    (not (u/collision-detection (:entities @state) [:image fake]))))
 
-(defn move
-  "The player can only move if they're not waving.
-  Walking _and_ waving is just not cool.
-  Also check for things you can't move through."
-  [direction]
+(defn move [direction]
+  (js/console.log "Am i even moving")
   (if (false? (:player-is-waving? @state))
     (if (hypothetical-move-possible? direction)
       (case direction
         :left (swap! state assoc :player-x (- (:player-x @state) speed))
         :right (swap! state assoc :player-x (+ (:player-x @state) speed))
         :up (swap! state assoc :player-y (- (:player-y @state) speed))
-        :down (swap! state assoc :player-y (+ (:player-y @state) speed))
-        false))))
+        :down (swap! state assoc :player-y (+ (:player-y @state) speed))))))
 
 (defn wave []
   (swap! state assoc :player-is-waving? (not (true? (:player-is-waving? @state)))))
@@ -69,18 +62,18 @@
    [:image {:value (:coffee-store @state) :x 430 :y 130 :width 50 :height 50}]])
 
 (defn spawn-person
-  "Pick a person image and append it to entities"
+  "Pick a person image and append it to people"
   []
   (let [new-entity [:image {:value (p/load-image game (str "person-" (rand-int 4) ".png"))
-                            :x (rand-int 600) :y (rand-int 370) :width 20 :height 30}]
-        old-entities (:entities @state)
+                            :x (rand-int 580) :y (rand-int 370) :width 20 :height 30}]
+        old-entities (:people @state)
         new-entities (conj old-entities new-entity)]
-    (swap! state assoc :entities [new-entities])))
+    (swap! state assoc :people [new-entities])))
 
 (defn spawn-person?
   "spawns a person approx every 2 seconds"
   []
-  (let [delta (p/get-delta-time game)sa
+  (let [delta (p/get-delta-time game)
         timer (:spawn-timer @state)
         update-time (+ timer delta)]
     (if (> update-time people-spawn-interval)
@@ -96,15 +89,20 @@
     (on-hide [this])
     (on-render [this]
       (let [player-state (if (:player-is-waving? @state) (:player-wave @state) (:player-image @state))
-            player-img [:image {:value player-state :x (:player-x @state) :y (:player-y @state) :width 20 :height 30}]
-            entities (:entities @state)]
-
-        (when (u/collision-detection entities player-img) (js/console.log "HIT"))
+            player-img [:image {:value player-state
+                                :x (:player-x @state) :y (:player-y @state)
+                                :width 20 :height 30}]
+            entities (:entities @state)
+            people (:people @state)]
 
         (spawn-person?)
 
+        (when (u/collision-detection people player-img) (js/console.log "BUM"))
+        (when (u/collision-detection entities player-img) (js/console.log "HIT"))
+
         (p/render game [[:image {:value (:bg @state) :x 0 :y 0}]])
         (p/render game entities)
+        (p/render game people)
         (p/render game [player-img])))))
 
 (doto game
@@ -129,4 +127,5 @@
                    (case key
                      32 (wave)         ; space
                      false)
-                   (js/console.log key))))
+                   ;(js/console.log key)
+                   )))
