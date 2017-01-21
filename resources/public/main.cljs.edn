@@ -1,0 +1,3 @@
+{:require  [ggj2017-waves.core]
+ :init-fns []
+ :compiler-options {}}
