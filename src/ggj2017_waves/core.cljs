@@ -21,9 +21,11 @@
                       :house2 (p/load-image game "house2.png")
                       :house3 (p/load-image game "house3.png")
                       :entities []
+                      :spawn-timer 0
                       }))
 
 (def speed 10)
+(def people-spawn-interval 2000)
 
 (defn hypothetical-move-possible?
   "Sorry but my brain can't think of a more elegant way right now.
@@ -66,6 +68,21 @@
    [:image {:value (:croissant-store @state) :x 210 :y 280 :width 50 :height 50}]
    [:image {:value (:coffee-store @state) :x 430 :y 130 :width 50 :height 50}]])
 
+(defn spawn-person []
+  (js/console.log "Hey there spawn"))
+
+(defn spawn-person?
+  "spawns a person approx every 2 seconds"
+  []
+  (let [delta (p/get-delta-time game)
+        timer (:spawn-timer @state)
+        update-time (+ timer delta)]
+    (if (> update-time people-spawn-interval)
+      (do
+        (spawn-person)
+        (swap! state assoc :spawn-timer 0))
+      (swap! state assoc :spawn-timer update-time))))
+
 (def main-screen
   (reify p/Screen
     (on-show [this]
@@ -78,8 +95,9 @@
 
         (when (u/collision-detection entities player-img) (js/console.log "HIT"))
 
-        (p/render game [[:div {:x 0 :y 0}
-                         [:image {:value (:bg @state)}]]])
+        (spawn-person?)
+
+        (p/render game [[:image {:value (:bg @state) :x 0 :y 0}]])
         (p/render game entities)
         (p/render game [player-img])))))
 
