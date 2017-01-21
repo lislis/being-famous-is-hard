@@ -18,3 +18,22 @@
                             :overlapping true)))
         overlaps (map overlap-check diags)]
     (some #(= true %) overlaps)))
+
+(defn hypothetical-move-possible?
+  "Sorry but my brain can't think of a more elegant way right now.
+  Basically I'm checking whether or not a move in the wanted direction
+  would trigger a collision by duplicating a lot of code"
+  [direction speed state]
+  (let [fake-player
+        {:value :player-wave
+         :x (:player-x state)
+         :y (:player-y state)
+         :width 20
+         :height 30}
+        fake (case direction
+               :left (assoc fake-player :x (- (:player-x state) speed))
+               :right (assoc fake-player :x (+ (:player-x state) speed))
+               :up (assoc fake-player :y (- (:player-y state) speed))
+               :down (assoc fake-player :y (+ (:player-y state) speed))
+               false)]
+    (not (collision-detection (:entities state) [:image fake]))))

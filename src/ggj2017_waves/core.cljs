@@ -24,29 +24,9 @@
 (def speed 10)
 (def people-spawn-interval 4000)
 
-(defn hypothetical-move-possible?
-  "Sorry but my brain can't think of a more elegant way right now.
-  Basically I'm checking whether or not a move in the wanted direction
-  would trigger a collision by duplicating a lot of code"
-  [direction]
-  (let [fake-player
-        {:value :player-wave
-         :x (:player-x @state)
-         :y (:player-y @state)
-         :width 20
-         :height 30}
-        fake (case direction
-          :left (assoc fake-player :x (- (:player-x @state) speed))
-          :right (assoc fake-player :x (+ (:player-x @state) speed))
-          :up (assoc fake-player :y (- (:player-y @state) speed))
-          :down (assoc fake-player :y (+ (:player-y @state) speed))
-          false)]
-    (not (u/collision-detection (:entities @state) [:image fake]))))
-
 (defn move [direction]
-  (js/console.log "Am i even moving")
   (if (false? (:player-is-waving? @state))
-    (if (hypothetical-move-possible? direction)
+    (if (u/hypothetical-move-possible? direction speed @state)
       (case direction
         :left (swap! state assoc :player-x (- (:player-x @state) speed))
         :right (swap! state assoc :player-x (+ (:player-x @state) speed))
