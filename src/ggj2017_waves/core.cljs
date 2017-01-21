@@ -11,13 +11,11 @@
                       :player-wave (p/load-image game "player-2.png")
                       :player-is-waving? false
                       :bg (p/load-image game "city.png")
-                      :fruit-store (p/load-image game "fruit.png")
-                      :croissant-store (p/load-image game "croissant.png")
-                      :coffee-store (p/load-image game "coffee.png")
                       :entities []
                       :people []
                       :stores []
                       :spawn-timer 0
+                      :bag []
                       }))
 
 (def speed 5)
@@ -55,7 +53,7 @@
 (def main-screen
   (reify p/Screen
     (on-show [this]
-      (swap! state assoc :stores (c/init-stores @state))
+      (swap! state assoc :stores (c/init-stores game))
       (swap! state assoc :entities (c/init-entities game)))
     (on-hide [this])
     (on-render [this]
