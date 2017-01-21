@@ -16,10 +16,13 @@
                       :stores []
                       :spawn-timer 0
                       :bag []
+                      :fame 100
+                      :time 0
                       }))
 
 (def speed 5)
 (def people-spawn-interval 4000)
+(def fame-factor 0.2)
 
 (defn move [direction]
   (if (false? (:player-is-waving? @state))
@@ -35,10 +38,10 @@
 
 (defn spawn-person []
   (let [new-entity [:image {:value (p/load-image game (str "person-" (rand-int 4) ".png"))
-                            :x (rand-int 580) :y (rand-int 370) :width 20 :height 30}]
+                            :x (rand-int 580) :y (rand-int 320) :width 20 :height 30}]
         old-entities (:people @state)
         new-entities (conj old-entities new-entity)]
-    (swap! state assoc :people [new-entities])))
+    (swap! state assoc :people new-entities)))
 
 (defn spawn-person-maybe []
   (let [delta (p/get-delta-time game)
@@ -50,6 +53,11 @@
         (swap! state assoc :spawn-timer 0))
       (swap! state assoc :spawn-timer update-time))))
 
+(defn update-fame []
+  (let [fame (:fame @state)
+        new-fame (- fame fame-factor)]
+    (swap! state assoc :fame new-fame)))
+
 (def main-screen
   (reify p/Screen
     (on-show [this]
@@ -57,7 +65,9 @@
       (swap! state assoc :entities (c/init-entities game)))
     (on-hide [this])
     (on-render [this]
-      (let [player-state (if (:player-is-waving? @state) (:player-wave @state) (:player-image @state))
+      (let [player-state (if (:player-is-waving? @state)
+                           (:player-wave @state)
+                           (:player-image @state))
             player-img [:image {:value player-state
                                 :x (:player-x @state) :y (:player-y @state)
                                 :width 20 :height 30}]
@@ -65,16 +75,33 @@
             people (:people @state)
             stores (:stores @state)]
 
+        (let [time (:time @state)
+              delta (p/get-delta-time game)
+              more-time (+ time delta)]
+          (swap! state assoc :time more-time))
+
         (spawn-person-maybe)
 
-        (when (u/collision-detection people player-img) (js/console.log "BUM"))
-        (when (u/collision-detection stores player-img) (js/console.log "HIT"))
+        (when (u/collision-detection people player-img) (update-fame))
+        (when (u/collision-detection stores player-img) (js/console.log "Shop"))
 
         (p/render game [[:image {:value (:bg @state) :x 0 :y 0}]])
         (p/render game entities)
         (p/render game stores)
         (p/render game people)
-        (p/render game [player-img])))))
+        (p/render game [player-img
+                        [:fill {:color "lightgrey"}
+                         [:stroke {:color "lightgrey"}
+                          [:rect {:x 0 :y 350 :width 600 :height 50}]]]
+                        [:text {:value (str "FAME: " (int (:fame @state)))
+                                :x 20 :y 385 :size 20
+                                :font "Georgia" :style :bold}]
+                        [:text {:value (str "TIME AWAY: " (int (/ (:time @state) 1000)))
+                                :x 170 :y 385 :size 20
+                                :font "Georgia" :style :bold}]
+                        [:text {:value (str "BAG: " (:bag @state))
+                                :x 380 :y 385 :size 20
+                                :font "Georgia" :style :bold}]])))))
 
 (doto game
   (p/stop)
