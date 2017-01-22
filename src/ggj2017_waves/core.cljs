@@ -169,9 +169,15 @@
 ;; using keyup as it is not firing constantly
 (events/listen js/window "keyup"
                (fn [^js/KeyboardEvent event]
-                 (let [key (.-keyCode event)]
+                 (let [screen (p/get-screen game)
+                       key (.-keyCode event)]
                    (case key
-                     32 (wave)         ; space
-                     false)
-                   ;(js/console.log key)
-                   )))
+                     32 (cond
+                          (= screen title-screen) (p/set-screen game intro-1-screen)
+                          (= screen intro-1-screen) (p/set-screen game intro-2-screen)
+                          (= screen intro-2-screen) (p/set-screen game main-screen)
+                          (= screen game-over-1-screen) (p/set-screen game main-screen)
+                          (= screen game-over-2-screen) (p/set-screen game main-screen)
+                          (= screen game-over-3-screen) (p/set-screen game main-screen)
+                          (= screen main-screen) (wave))         ; space
+                     false))))
