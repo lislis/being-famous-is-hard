@@ -19,14 +19,15 @@
                       :game-over-3 (p/load-image game "game-over-win.png")
                       :entities []
                       :people []
-                      :stores []
                       :spawn-timer 0
-                      :bag []
+                      :bag #{}
                       :fame 100
                       :time 0
                       }))
 
 (declare game-over-1-screen)
+(declare game-over-2-screen)
+(declare game-over-3-screen)
 
 (def speed 5)
 (def people-spawn-interval 4000)
@@ -67,11 +68,24 @@
         new-fame (- fame fame-factor)]
     (swap! state assoc :fame new-fame)))
 
+(defn collect-item [item]
+  (let [bag (:bag @state)
+        new-bag (conj bag item)]
+    (swap! state assoc :bag new-bag)))
+
+
 (def main-screen
   (reify p/Screen
     (on-show [this]
       (swap! state assoc :time 0)
-      (swap! state assoc :stores (c/init-stores game))
+      (swap! state assoc :bag #{})
+      (swap! state assoc :player-x 200)
+      (swap! state assoc :player-y 40)
+      (swap! state assoc :fame 100)
+      (swap! state assoc :people [])
+      (swap! state assoc :fruit-store (c/init-fruit game))
+      (swap! state assoc :croissant-store (c/init-croissant game))
+      (swap! state assoc :coffee-store (c/init-coffee game))
       (swap! state assoc :entities (c/init-entities game)))
     (on-hide [this])
     (on-render [this]
@@ -82,8 +96,7 @@
                                 :x (:player-x @state) :y (:player-y @state)
                                 :width 20 :height 30}]
             entities (:entities @state)
-            people (:people @state)
-            stores (:stores @state)]
+            people (:people @state)]
 
         (let [time (:time @state)
               delta (p/get-delta-time game)
@@ -93,29 +106,36 @@
         (spawn-person-maybe)
 
         (when (u/collision-detection people player-img) (update-fame))
-        (when (u/collision-detection stores player-img) (js/console.log "Shop"))
+        (when (u/collision-detection [(:fruit-store @state)] player-img) (collect-item :fruit))
+        (when (u/collision-detection [(:croissant-store @state)] player-img) (collect-item :croissant))
+        (when (u/collision-detection [(:coffee-store @state)] player-img) (collect-item :coffee))
+        ;;(when (u/collision-detection stores player-img) (js/console.log "Shop"))
 
         (when (= (int (/ (:time @state) 1000)) break-time)
           (p/set-screen game game-over-1-screen))
+        (when (= (count (:bag @state)) 3)
+          (p/set-screen game game-over-3-screen))
 
         ;;()
 
         (p/render game [[:image {:value (:bg @state) :x 0 :y 0}]])
         (p/render game entities)
-        (p/render game stores)
+        (p/render game [(:fruit-store @state)
+                        (:croissant-store @state)
+                        (:coffee-store @state)])
         (p/render game people)
         (p/render game [player-img
                         [:fill {:color "lightgrey"}
                          [:stroke {:color "lightgrey"}
                           [:rect {:x 0 :y 350 :width 600 :height 50}]]]
                         [:text {:value (str "FAME: " (int (:fame @state)))
-                                :x 20 :y 385 :size 20
+                                :x 10 :y 385 :size 20
                                 :font "Georgia" :style :bold}]
-                        [:text {:value (str "TIME AWAY: " (int (/ (:time @state) 1000)))
-                                :x 170 :y 385 :size 20
+                        [:text {:value (str "BREAK: " (int (/ (:time @state) 1000)) "s")
+                                :x 150 :y 385 :size 20
                                 :font "Georgia" :style :bold}]
                         [:text {:value (str "BAG: " (:bag @state))
-                                :x 380 :y 385 :size 20
+                                :x 280 :y 385 :size 20
                                 :font "Georgia" :style :bold}]])))))
 
 (def title-screen
