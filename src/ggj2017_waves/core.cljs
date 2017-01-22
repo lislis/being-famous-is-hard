@@ -185,7 +185,7 @@
 (doto game
   (p/stop)
   (p/start)
-  (p/set-screen main-screen))
+  (p/set-screen title-screen))
 
 (events/listen js/window "keydown"
                (fn [^js/KeyboardEvent event]
