@@ -11,6 +11,12 @@
                       :player-wave (p/load-image game "player-2.png")
                       :player-is-waving? false
                       :bg (p/load-image game "city.png")
+                      :title (p/load-image game "start-screen.png")
+                      :intro-1 (p/load-image game "story-1.png")
+                      :intro-2 (p/load-image game "story-2.png")
+                      :game-over-1 (p/load-image game "game-over-timeout.png")
+                      :game-over-2 (p/load-image game "game-over-fameout.png")
+                      :game-over-3 (p/load-image game "game-over-win.png")
                       :entities []
                       :people []
                       :stores []
@@ -103,10 +109,52 @@
                                 :x 380 :y 385 :size 20
                                 :font "Georgia" :style :bold}]])))))
 
+(def title-screen
+  (reify p/Screen
+    (on-show [this])
+    (on-hide [this])
+    (on-render [this]
+      (p/render game [[:image {:value (:title @state) :x 0 :y 0}]]))))
+
+(def intro-1-screen
+  (reify p/Screen
+    (on-show [this])
+    (on-hide [this])
+    (on-render [this]
+      (p/render game [[:image {:value (:intro-1 @state) :x 0 :y 0}]]))))
+
+(def intro-2-screen
+  (reify p/Screen
+    (on-show [this])
+    (on-hide [this])
+    (on-render [this]
+      (p/render game [[:image {:value (:intro-2 @state) :x 0 :y 0}]]))))
+
+(def game-over-1-screen
+  (reify p/Screen
+    (on-show [this])
+    (on-hide [this])
+    (on-render [this]
+      (p/render game [[:image {:value (:game-over-1 @state) :x 0 :y 0}]]))))
+
+(def game-over-2-screen
+  (reify p/Screen
+    (on-show [this])
+    (on-hide [this])
+    (on-render [this]
+      (p/render game [[:image {:value (:game-over-2 @state) :x 0 :y 0}]]))))
+
+(def game-over-3-screen
+  (reify p/Screen
+    (on-show [this])
+    (on-hide [this])
+    (on-render [this]
+      (p/render game [[:image {:value (:game-over-3 @state) :x 0 :y 0}]]))))
+
 (doto game
   (p/stop)
   (p/start)
-  (p/set-screen main-screen))
+  (p/set-screen title-screen))
 
 (events/listen js/window "keydown"
                (fn [^js/KeyboardEvent event]
