@@ -6,6 +6,7 @@
                   [pandeiro/boot-http "0.7.3" :scope "test"]
                   ; project deps
                   [org.clojure/clojurescript "1.9.225"]
+                  [org.clojure/math.numeric-tower "0.0.4"]
                   [play-cljs "0.7.0"]])
 
 (require
@@ -23,4 +24,3 @@
 
 (deftask build []
   (comp (cljs :optimizations :simple) (target)))
-

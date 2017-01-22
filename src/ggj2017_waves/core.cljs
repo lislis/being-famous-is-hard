@@ -1,5 +1,6 @@
 (ns ggj2017-waves.core
   (:require [play-cljs.core :as p]
+            [clojure.math.numeric-tower :as math]
             [ggj2017-waves.utils :as u]
             [ggj2017-waves.config :as c]
             [goog.events :as events]))
@@ -73,6 +74,19 @@
         new-bag (conj bag item)]
     (swap! state assoc :bag new-bag)))
 
+(defn point-in-circle? [x y cx cy r]
+  (< (+ (math/expt (- x cx) 2)
+        (math/expt (- y cy) 2))
+     (math/expt r 2)))
+
+(defn collide-circle [people player-img]
+  (let [player (rest player-img)
+        cx (:x player)
+        cy (:y player)
+        r 50])
+  ;; check if people are in the radius
+  (js/console.log "WAVE"))
+
 
 (def main-screen
   (reify p/Screen
@@ -112,6 +126,8 @@
           (collect-item :croissant))
         (when (u/collision-detection [(:coffee-store @state)] player-img)
           (collect-item :coffee))
+        (when (true?  (:player-is-waving? @state))
+          (collide-circle people player-img))
 
         (when (= (int (/ (:time @state) 1000)) break-time)
           (p/set-screen game game-over-1-screen))
