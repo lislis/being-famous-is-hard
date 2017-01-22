@@ -29,10 +29,10 @@
 (declare game-over-2-screen)
 (declare game-over-3-screen)
 
-(def speed 5)
-(def people-spawn-interval 4000)
-(def fame-factor 0.2)
-(def break-time 180)
+(def speed 10)
+(def people-spawn-interval 2000)
+(def fame-factor 0.4)
+(def break-time 120)
 
 (defn move [direction]
   (if (false? (:player-is-waving? @state))
