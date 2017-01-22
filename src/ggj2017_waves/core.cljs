@@ -26,9 +26,12 @@
                       :time 0
                       }))
 
+(declare game-over-1-screen)
+
 (def speed 5)
 (def people-spawn-interval 4000)
 (def fame-factor 0.2)
+(def break-time 180)
 
 (defn move [direction]
   (if (false? (:player-is-waving? @state))
@@ -67,6 +70,7 @@
 (def main-screen
   (reify p/Screen
     (on-show [this]
+      (swap! state assoc :time 0)
       (swap! state assoc :stores (c/init-stores game))
       (swap! state assoc :entities (c/init-entities game)))
     (on-hide [this])
@@ -90,6 +94,11 @@
 
         (when (u/collision-detection people player-img) (update-fame))
         (when (u/collision-detection stores player-img) (js/console.log "Shop"))
+
+        (when (= (int (/ (:time @state) 1000)) break-time)
+          (p/set-screen game game-over-1-screen))
+
+        ;;()
 
         (p/render game [[:image {:value (:bg @state) :x 0 :y 0}]])
         (p/render game entities)
@@ -154,7 +163,7 @@
 (doto game
   (p/stop)
   (p/start)
-  (p/set-screen title-screen))
+  (p/set-screen main-screen))
 
 (events/listen js/window "keydown"
                (fn [^js/KeyboardEvent event]
