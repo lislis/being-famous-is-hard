@@ -106,17 +106,19 @@
         (spawn-person-maybe)
 
         (when (u/collision-detection people player-img) (update-fame))
-        (when (u/collision-detection [(:fruit-store @state)] player-img) (collect-item :fruit))
-        (when (u/collision-detection [(:croissant-store @state)] player-img) (collect-item :croissant))
-        (when (u/collision-detection [(:coffee-store @state)] player-img) (collect-item :coffee))
-        ;;(when (u/collision-detection stores player-img) (js/console.log "Shop"))
+        (when (u/collision-detection [(:fruit-store @state)] player-img)
+          (collect-item :fruit))
+        (when (u/collision-detection [(:croissant-store @state)] player-img)
+          (collect-item :croissant))
+        (when (u/collision-detection [(:coffee-store @state)] player-img)
+          (collect-item :coffee))
 
         (when (= (int (/ (:time @state) 1000)) break-time)
           (p/set-screen game game-over-1-screen))
+        (when (< (int (:fame @state)) 0)
+          (p/set-screen game game-over-2-screen))
         (when (= (count (:bag @state)) 3)
           (p/set-screen game game-over-3-screen))
-
-        ;;()
 
         (p/render game [[:image {:value (:bg @state) :x 0 :y 0}]])
         (p/render game entities)
